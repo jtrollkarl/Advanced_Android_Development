@@ -38,13 +38,19 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -96,29 +102,46 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     GoogleApiClient.ConnectionCallbacks connectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
         @Override
         public void onConnected(Bundle bundle) {
-
+            Log.d(LOG_TAG, "connected to wearable");
         }
 
         @Override
         public void onConnectionSuspended(int i) {
-
+            Log.d(LOG_TAG, "wearable connection suspended");
         }
     };
     GoogleApiClient.OnConnectionFailedListener connectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
         @Override
         public void onConnectionFailed(ConnectionResult connectionResult) {
-
+            Log.e(LOG_TAG, "connection failed. Error code: "+ connectionResult.getErrorCode());
         }
     };
     ///END GOOGLE API CALLBACKS
 
-    private void sendWeatherData(int weatherId, int high, int low){
+    private void sendWeatherData(int weatherId, float high, float low){
+        Bitmap img = BitmapFactory.decodeResource(getContext().getResources(), Utility.getIconResourceForWeatherCondition(weatherId));
+
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        img.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
+        Asset asset = Asset.createFromBytes(byteStream.toByteArray());
+
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weather-data");
-        putDataMapRequest.getDataMap().putInt("temp-high", high);
-        putDataMapRequest.getDataMap().putInt("temp-low", low);
+        putDataMapRequest.getDataMap().putInt("temp-high", (int) high);
+        putDataMapRequest.getDataMap().putInt("temp-low", (int) low);
+        putDataMapRequest.getDataMap().putAsset("temp-icon", asset);
 
-        //TODO: retrieve image asset according to weatherid; compress it.
-
+        PutDataRequest request = putDataMapRequest.asPutDataRequest();
+        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
+                .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                    @Override
+                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                        if(!dataItemResult.getStatus().isSuccess()){
+                            Log.e(LOG_TAG, "Failed to send data to wearable");
+                        }else{
+                            Log.d(LOG_TAG, "Successfully sent data to wearable");
+                        }
+                    }
+                });
 
     }
 
@@ -389,7 +412,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 /*
                 TODO: send weather data to wearable from here
                  */
-                sendWeatherData(weatherId, (int) high, (int) low);
+
+                //sendWeatherData(weatherId, (int) high, (int) low);
 
 
                 cVVector.add(weatherValues);
@@ -398,6 +422,18 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
             int inserted = 0;
             // add to database
             if ( cVVector.size() > 0 ) {
+                //////////////////////////////////
+                mGoogleApiClient = new GoogleApiClient.Builder(getContext())
+                        .addApi(Wearable.API)
+                        .addConnectionCallbacks(connectionCallbacks)
+                        .addOnConnectionFailedListener(connectionFailedListener)
+                        .build();
+                mGoogleApiClient.connect();
+
+                sendWeatherData(cVVector.get(1).getAsInteger(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID),
+                        cVVector.get(1).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
+                        cVVector.get(1).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP));
+                //////
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
                 getContext().getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cvArray);
