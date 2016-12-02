@@ -36,6 +36,9 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.PutDataMapRequest;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -86,6 +89,38 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int LOCATION_STATUS_SERVER_INVALID = 2;
     public static final int LOCATION_STATUS_UNKNOWN = 3;
     public static final int LOCATION_STATUS_INVALID = 4;
+
+    private GoogleApiClient mGoogleApiClient;
+
+    //GOOGLE API CALLBACKS
+    GoogleApiClient.ConnectionCallbacks connectionCallbacks = new GoogleApiClient.ConnectionCallbacks() {
+        @Override
+        public void onConnected(Bundle bundle) {
+
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+    };
+    GoogleApiClient.OnConnectionFailedListener connectionFailedListener = new GoogleApiClient.OnConnectionFailedListener() {
+        @Override
+        public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        }
+    };
+    ///END GOOGLE API CALLBACKS
+
+    private void sendWeatherData(int weatherId, int high, int low){
+        PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weather-data");
+        putDataMapRequest.getDataMap().putInt("temp-high", high);
+        putDataMapRequest.getDataMap().putInt("temp-low", low);
+
+        //TODO: retrieve image asset according to weatherid; compress it.
+
+
+    }
 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -350,6 +385,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 weatherValues.put(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP, low);
                 weatherValues.put(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC, description);
                 weatherValues.put(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID, weatherId);
+
+                /*
+                TODO: send weather data to wearable from here
+                 */
+                sendWeatherData(weatherId, (int) high, (int) low);
+
 
                 cVVector.add(weatherValues);
             }
@@ -658,4 +699,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         spe.putInt(c.getString(R.string.pref_location_status_key), locationStatus);
         spe.commit();
     }
+
+
+
 }

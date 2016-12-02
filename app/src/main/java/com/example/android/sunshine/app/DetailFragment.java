@@ -201,6 +201,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             int weatherId = data.getInt(COL_WEATHER_CONDITION_ID);
 
             if ( Utility.usingLocalGraphics(getActivity()) ) {
+                //TODO
                 mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherId));
             } else {
                 // Use weather art image
