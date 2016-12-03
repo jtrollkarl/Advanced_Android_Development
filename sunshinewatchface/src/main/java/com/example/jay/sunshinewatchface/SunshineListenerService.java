@@ -2,6 +2,7 @@ package com.example.jay.sunshinewatchface;
 
 import android.util.Log;
 
+import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMap;
@@ -22,6 +23,10 @@ public class SunshineListenerService extends WearableListenerService {
                 Log.d(TAG, path);
                 if(path.equals("/weather-data")){
                     Log.d(TAG, "Data successfully received");
+                    String high = dataMap.getString("temp-high");
+                    String low = dataMap.getString("temp-low");
+                    Asset weathericon = dataMap.getAsset("temp-icon");
+                    Log.d(TAG, high + " "+ low);
                 }
             }
         }

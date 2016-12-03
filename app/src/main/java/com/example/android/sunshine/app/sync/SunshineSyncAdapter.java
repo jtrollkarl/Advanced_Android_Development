@@ -28,6 +28,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
 import android.util.Log;
+import android.widget.Button;
 
 import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.BuildConfig;
@@ -126,8 +127,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
         Asset asset = Asset.createFromBytes(byteStream.toByteArray());
 
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weather-data");
-        putDataMapRequest.getDataMap().putInt("temp-high", (int) high);
-        putDataMapRequest.getDataMap().putInt("temp-low", (int) low);
+        putDataMapRequest.getDataMap().putString("temp-high", Utility.formatTemperature(getContext(), high));
+        putDataMapRequest.getDataMap().putString("temp-low", Utility.formatTemperature(getContext(), low));
         putDataMapRequest.getDataMap().putAsset("temp-icon", asset);
 
         PutDataRequest request = putDataMapRequest.asPutDataRequest();
@@ -413,8 +414,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 TODO: send weather data to wearable from here
                  */
 
-                //sendWeatherData(weatherId, (int) high, (int) low);
-
 
                 cVVector.add(weatherValues);
             }
@@ -430,9 +429,9 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                         .build();
                 mGoogleApiClient.connect();
 
-                sendWeatherData(cVVector.get(1).getAsInteger(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID),
-                        cVVector.get(1).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
-                        cVVector.get(1).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP));
+                sendWeatherData(cVVector.get(0).getAsInteger(WeatherContract.WeatherEntry.COLUMN_WEATHER_ID),
+                        cVVector.get(0).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
+                        cVVector.get(0).getAsFloat(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP));
                 //////
                 ContentValues[] cvArray = new ContentValues[cVVector.size()];
                 cVVector.toArray(cvArray);
