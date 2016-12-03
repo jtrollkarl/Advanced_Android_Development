@@ -124,12 +124,12 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
 
         final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         img.compress(Bitmap.CompressFormat.PNG, 100, byteStream);
-        Asset asset = Asset.createFromBytes(byteStream.toByteArray());
+        byte[] b = byteStream.toByteArray();
 
         PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/weather-data");
         putDataMapRequest.getDataMap().putString("temp-high", Utility.formatTemperature(getContext(), high));
         putDataMapRequest.getDataMap().putString("temp-low", Utility.formatTemperature(getContext(), low));
-        putDataMapRequest.getDataMap().putAsset("temp-icon", asset);
+        putDataMapRequest.getDataMap().putByteArray("temp-icon", b);
 
         PutDataRequest request = putDataMapRequest.asPutDataRequest();
         Wearable.DataApi.putDataItem(mGoogleApiClient, request)

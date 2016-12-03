@@ -1,5 +1,7 @@
 package com.example.jay.sunshinewatchface;
 
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.wearable.Asset;
@@ -25,8 +27,16 @@ public class SunshineListenerService extends WearableListenerService {
                     Log.d(TAG, "Data successfully received");
                     String high = dataMap.getString("temp-high");
                     String low = dataMap.getString("temp-low");
-                    Asset weathericon = dataMap.getAsset("temp-icon");
-                    Log.d(TAG, high + " "+ low);
+                    byte[] weathericon = dataMap.getByteArray("temp-icon");
+                    Log.d(TAG, high + " "+ low + String.valueOf(weathericon.length));
+
+                    Intent weatherData = new Intent("weather");
+                    weatherData.putExtra("temp-high", high);
+                    weatherData.putExtra("temp-low", low);
+                    weatherData.putExtra("temp-icon", weathericon);
+
+                    sendBroadcast(weatherData);
+                    Log.d(TAG, "sending weather data broadcast...");
                 }
             }
         }
