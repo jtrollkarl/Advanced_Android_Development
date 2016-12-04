@@ -27,7 +27,6 @@ public class SunshineListenerService extends WearableListenerService {
                 String high = dataMap.getString("temp-high");
                 String low = dataMap.getString("temp-low");
                 byte[] weathericon = dataMap.getByteArray("temp-icon");
-                Log.d(TAG, high + " " + low + String.valueOf(weathericon.length));
 
                 Intent weatherData = new Intent("weather");
                 weatherData.putExtra("temp-high", high);
