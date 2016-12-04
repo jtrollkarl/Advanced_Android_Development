@@ -128,7 +128,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(TAG, intent.getAction());
-                if (intent.getAction().equals("weather")){
+                if (intent.getAction().equals("weather")) {
                     Log.d(TAG, "broadcast received");
                     tvHigh.setText(intent.getStringExtra("temp-high"));
                     tvLow.setText(intent.getStringExtra("temp-low"));
@@ -193,7 +193,6 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
         }
-
 
 
         @Override
@@ -270,13 +269,20 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
             super.onAmbientModeChanged(inAmbientMode);
-            if (mAmbient != inAmbientMode) {
-                mAmbient = inAmbientMode;
-                if (mLowBitAmbient) {
-                    //mTextPaint.setAntiAlias(!inAmbientMode);
-                }
-                invalidate();
+
+            if (inAmbientMode) {
+                watchFaceLayout.setBackgroundColor(Color.BLACK);
+                ivWeather.setVisibility(View.GONE);
+                tvHigh.setVisibility(View.GONE);
+                tvLow.setVisibility(View.GONE);
+            } else {
+                watchFaceLayout.setBackgroundColor(getColor(R.color.background));
+                ivWeather.setVisibility(View.VISIBLE);
+                tvHigh.setVisibility(View.VISIBLE);
+                tvLow.setVisibility(View.VISIBLE);
             }
+            invalidate();
+
 
             // Whether the timer should be running depends on whether we're visible (as well as
             // whether we're in ambient mode), so we may need to start or stop the timer.
@@ -318,7 +324,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
             String strDate = sdf.format(today);
 
             tvMinute.setText(String.format("%02d", mCalendar.get(Calendar.MINUTE)));
-            tvHour.setText(String.format("%02d", mCalendar.get(Calendar.HOUR_OF_DAY)));
+            tvHour.setText(String.format("%02d", mCalendar.get(Calendar.HOUR_OF_DAY)) + ":");
             tvDate.setText(strDate);
 
             watchFaceLayout.measure(specW, specH);
